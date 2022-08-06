@@ -1,17 +1,14 @@
 'use strict';
 
-////////////////////////////////////////////////////
-//// CLASS ARCHITECTURE
-
 class Workout {
   date = new Date();
   id = (Date.now() + '').slice(-10);
   clicks = 0;
 
   constructor(coords, distance, duration) {
-    this.coords = coords; // [lat, long]
-    this.distance = distance; // in km
-    this.duration = duration; // in min
+    this.coords = coords;
+    this.distance = distance;
+    this.duration = duration;
   }
 
   _setDescription() {
@@ -38,7 +35,6 @@ class Running extends Workout {
   }
 
   calcPace() {
-    // min/km
     this.pace = this.duration / this.distance;
     return this.pace;
   }
@@ -54,14 +50,10 @@ class Cycling extends Workout {
   }
 
   calcSpeed() {
-    // km/hr
     this.speed = this.distance / (this.duration / 60);
     return this.speed;
   }
 }
-
-///////////////////////////////////////////////////////////
-////////  APPLICATION ARCHITECTURE
 
 const form = document.querySelector('.form');
 const containerWorkouts = document.querySelector('.workouts');
@@ -78,13 +70,10 @@ class App {
   #workouts = [];
 
   constructor() {
-    // Get user position
     this._getPosition();
 
-    // Get data from local storage
     this._getLocalStorage();
 
-    // Attach event handlers
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -121,10 +110,8 @@ class App {
       }
     ).addTo(this.#map);
 
-    // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
-    // Render markers from local storage
     this.#workouts.forEach(work => {
       this._renderWorkoutMarker(work);
     });
@@ -137,7 +124,6 @@ class App {
   }
 
   _hideForm() {
-    // empty inputs
     inputDistance.value =
       inputCadence.value =
       inputDuration.value =
@@ -160,19 +146,15 @@ class App {
     const isPositive = (...inputs) => inputs.every(input => input > 0);
     e.preventDefault();
 
-    // Get data from the form
     const type = inputType.value;
     const distance = +inputDistance.value;
     const duration = +inputDuration.value;
     const { lat, lng } = this.#mapEvent.latlng;
     let workout;
 
-    // Check if data is valid
 
-    // If activity is "running", creating Running object
     if (type === 'running') {
       const cadence = +inputCadence.value;
-      // check if data is valid
       if (
         !validInputs(distance, duration, cadence) ||
         !isPositive(distance, duration, cadence)
@@ -183,10 +165,8 @@ class App {
       workout = new Running([lat, lng], distance, duration, cadence);
     }
 
-    // If activity is "cycling", creating Cycling object
     if (type === 'cycling') {
       const elevation = +inputElevation.value;
-      // check if data is valid
       if (
         !validInputs(distance, duration, elevation) ||
         !isPositive(distance, duration, elevation)
@@ -197,21 +177,13 @@ class App {
       workout = new Cycling([lat, lng], distance, duration, elevation);
     }
 
-    // Add new object to workout array
     this.#workouts.push(workout);
-    console.log(workout);
-    // console.log(this.#workouts);
-
-    // Render workout on map as marker
     this._renderWorkoutMarker(workout);
 
-    // Render workout on list
     this._renderWorkout(workout);
 
-    // Hide the form and clear input fields
     this._hideForm();
 
-    // Set local storage to all workouts
     this._setLocalStorage();
   }
 
@@ -284,7 +256,6 @@ class App {
 
   _moveToPopup(e) {
     const workoutEl = e.target.closest('.workout');
-    // console.log(workoutEl);
 
     if (!workoutEl) return;
 
@@ -292,17 +263,12 @@ class App {
       work => work.id === workoutEl.dataset.id
     );
 
-    // console.log(workout);
-
     this.#map.setView(workout.coords, this.#mapZoomLevel, {
       animate: true,
       pan: {
         duration: 1,
       },
     });
-
-    // using the public interface
-    // workout.click();
   }
 
   _setLocalStorage() {
@@ -311,7 +277,6 @@ class App {
 
   _getLocalStorage() {
     const data = JSON.parse(localStorage.getItem('workouts'));
-    console.log(data);
 
     if (!data) return;
 
@@ -330,15 +295,3 @@ class App {
 
 const app = new App();
 
-
-// CHALLENGES TO IMPROVE THIS PROJECT
-// 1. Edit a workout
-// 2. Delete a workout
-// 3. Delete all workouts
-// 4. Sort workouts by a certain field
-// 5. Re-build Running and Cycling objects coming from Local Storage
-// 6. More realistic error and confirmation messages
-// 7. Ability to position the map to show all workouts [very hard]
-// 8. Ability to draw lines and shapes instead of just points [very hard]
-// 9. Geocode location from coordinates ("Run in Faro, Portugal")
-// 10. Display weather data for workout time and place
